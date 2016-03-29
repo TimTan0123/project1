@@ -1,0 +1,104 @@
+<html>
+  <style>
+    body{ 
+      font-size: 15pt;
+      font-family: arial;
+    }
+  </style>
+
+
+<body>
+  <h1>Internship Bridge</h1>
+  <div> We have {{number}} Company Users in total now, sign up to be the {{number+1}} </div>
+
+
+<p><a href="/">Back to Homepace</a></p>
+
+<form method="POST" action="/companysignin">
+
+<p>Sign Up:<br>
+   Name: <input type="text" name="name"> 
+   Size: <input type="text" name="size">
+   Field: <input type="text" name="field"> 
+   Address: <input type="text" name="address">
+    
+<input type="submit" value="Add"></p>
+</form>
+
+<form method="GET" action="/searchpersonbyname">
+<p>Search person by name:<br>
+<input type="text" name="name">  
+<input type="submit" value="Search"></p>
+</form>
+
+<form method="GET" action="/searchstudentbyschool">
+<p>Search student by school: <br>
+<input type="text" name="school">  
+<input type="submit" value="Search"></p>
+</form>
+
+
+<form method="GET" action="/searchstudentbymajor">
+<p>Search student by major: <br>
+<input type="text" name="major">  
+<input type="submit" value="Search"></p>
+</form>
+
+<form method="GET" action="/searchemployeebyjob">
+<p>Search employee by job: <br>
+<input type="text" name="job">  
+<input type="submit" value="Search"></p>
+</form>
+
+<form method="GET" action="/searchemployeebycompany">
+<p>Search employee by company: <br>
+<input type="text" name="company">  
+<input type="submit" value="Search"></p>
+</form>
+
+<form method="GET" action="/searchcompanybyname">
+<p>Search company by name: <br>
+<input type="text" name="name">  
+<input type="submit" value="Search"></p>
+</form>
+
+
+<form method="POST" action="/companyhostinterview">
+<p>Sign for hosting an interview:<br>
+Company ID:<input type="number" name="cid"> 
+Time:<input type="text" name="time">
+Location:<input type="text" name="location">
+<input type="submit" value="Sign"></p>
+</form>
+
+<form method="GET" action="/checkwhoattendinterview">
+<p>Check who will attend my interview: <br>
+Company ID: <input type="number" name="cid">  
+<input type="submit" value="Check"></p>
+</form>
+
+
+
+<form method="POST" action="/companypostposition">
+<p>Posting Job Here:<br>
+
+Company ID:<input type="number" name="cid"> 
+Payment:<input type="text" name="payment">
+Address:<input type="text" name="address">
+Start Time:<input type="text" name="starttime">
+Duration:<input type="text" name="duration">
+Title:<input type="text" name="title">
+<input type="submit" value="Post"></p>
+</form>
+
+<form method="GET" action="/checkwhoappliedposition">
+<p>Check who has applied my position: <br>
+Company ID: <input type="number" name="cid">  
+<input type="submit" value="Check"></p>
+</form>
+
+    
+</body>
+
+
+</html>

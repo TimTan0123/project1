@@ -1,0 +1,30 @@
+<html>
+  <style>
+    body{ 
+      font-size: 15pt;
+      font-family: arial;
+    }
+  </style>
+
+
+<body>
+  <h1>Search Result</h1>
+
+
+
+<p><a href="/">Back to Homepage</a></p>
+<p><a href="/student">Back to Student Page</a></p>
+<p><a href="/employee">Back to Employee Page</a></p>
+<p><a href="/company">Back to Company Page</a></p>
+
+  <div>
+    {% for n in search_result %}
+    <div>{{n}}</div>
+    {% endfor %}
+  </div>
+
+
+</body>
+
+
+</html>

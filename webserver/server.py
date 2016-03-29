@@ -1,21 +1,7 @@
 #!/usr/bin/env python2.7
 
-"""
-Columbia W4111 Intro to databases
-Example webserver
-
-To run locally
-
-    python server.py
-
-Go to http://localhost:8111 in your browser
-
-
-A debugger such as "pdb" may be helpful for debugging.
-Read about it online.
-"""
-
 import os
+import datetime
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
@@ -24,64 +10,13 @@ tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
 
-#
-# The following uses the sqlite3 database test.db -- you can use this for debugging purposes
-# However for the project you will need to connect to your Part 2 database in order to use the
-# data
-#
-# XXX: The URI should be in the format of: 
-#
-#     postgresql://USER:PASSWORD@w4111db.eastus.cloudapp.azure.com/username
-#
-# For example, if you had username ewu2493, password foobar, then the following line would be:
-#
-#     DATABASEURI = "postgresql://ewu2493:foobar@w4111db.eastus.cloudapp.azure.com/ewu2493"
-#
-DATABASEURI = "sqlite:///test.db"
 
-
-#
-# This line creates a database engine that knows how to connect to the URI above
-#
+DATABASEURI = "postgresql://tt2573:EDLGCH@w4111db.eastus.cloudapp.azure.com/tt2573"
 engine = create_engine(DATABASEURI)
-
-
-#
-# START SQLITE SETUP CODE
-#
-# after these statements run, you should see a file test.db in your webserver/ directory
-# this is a sqlite database that you can query like psql typing in the shell command line:
-# 
-#     sqlite3 test.db
-#
-# The following sqlite3 commands may be useful:
-# 
-#     .tables               -- will list the tables in the database
-#     .schema <tablename>   -- print CREATE TABLE statement for table
-# 
-# The setup code should be deleted once you switch to using the Part 2 postgresql database
-#
-engine.execute("""DROP TABLE IF EXISTS test;""")
-engine.execute("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);""")
-engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
-#
-# END SQLITE SETUP CODE
-#
-
-
 
 @app.before_request
 def before_request():
-  """
-  This function is run at the beginning of every web request 
-  (every time you enter an address in the web browser).
-  We use it to setup a database connection that can be used throughout the request
 
-  The variable g is globally accessible
-  """
   try:
     g.conn = engine.connect()
   except:
@@ -91,108 +26,539 @@ def before_request():
 
 @app.teardown_request
 def teardown_request(exception):
-  """
-  At the end of the web request, this makes sure to close the database connection.
-  If you don't the database could run out of memory!
-  """
+
   try:
     g.conn.close()
   except Exception as e:
     pass
 
 
-#
-# @app.route is a decorator around index() that means:
-#   run index() whenever the user tries to access the "/" path using a GET request
-#
-# If you wanted the user to go to e.g., localhost:8111/foobar/ with POST or GET then you could use
-#
-#       @app.route("/foobar/", methods=["POST", "GET"])
-#
-# PROTIP: (the trailing / in the path is important)
-# 
-# see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
-# see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
-#
 @app.route('/')
 def index():
-  """
-  request is a special object that Flask provides to access web request information:
-
-  request.method:   "GET" or "POST"
-  request.form:     if the browser submitted a form, this contains the data in the form
-  request.args:     dictionary of URL arguments e.g., {a:1, b:2} for http://localhost?a=1&b=2
-
-  See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
-  """
-
-  # DEBUG: this is debugging code to see what request looks like
-  print request.args
-
-
-  #
-  # example of a database query
-  #
-  cursor = g.conn.execute("SELECT name FROM test")
-  names = []
+  
+  cursor1 = g.conn.execute("select P.PID,P.name,P.email,P.address,P.type,S.school,S.major FROM Person P, Student S where P.type='student' and P.PID=S.PID")
+  student = []
+  for result in cursor1:
+    student.append([str(x) for x in result])  
+  cursor1.close()
+  
+  cursor2 = g.conn.execute("SELECT P.PID,P.name,P.email,P.address,P.type,E.job,E.rank FROM Person P, Employee E where P.type='employee' and P.PID=E.PID")
+  employee= []
+  for result in cursor2:
+      employee.append([str(x) for x in result])
+  cursor2.close()
+  
+  cursor3 = g.conn.execute("SELECT * FROM Company")
+  company= []
+  for result in cursor3:
+      company.append([str(x) for x in result])
+  cursor3.close() 
+  
+  return render_template("homepage.html", student=student, employee=employee, company=company)
+  
+  
+@app.route('/student')
+def gostudent():
+  cursor= g.conn.execute("SELECT count(*) FROM Student")
+  number=0
   for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
+      number=result[0]
   cursor.close()
+  return render_template("student.html",number=number)
 
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
-  context = dict(data = names)
-
-
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
-  return render_template("index.html", **context)
-
-#
-# This is an example of a different path.  You can see it at
-# 
-#     localhost:8111/another
-#
-# notice that the functio name is another() rather than index()
-# the functions for each app.route needs to have different names
-#
-@app.route('/another')
-def another():
-  return render_template("anotherfile.html")
-
-
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
+@app.route('/studentsignin', methods=['POST'])
 def add():
-  name = request.form['name']
-  g.conn.execute('INSERT INTO test VALUES (NULL, ?)', name)
-  return redirect('/')
+  
+  try:
+    cursor = g.conn.execute("SELECT count(*) FROM Person")
+    number=0
+    for result in cursor:
+      number=result[0]
+    PID = number+1
+    name = request.form['name']
+    email = request.form['email']
+    address = request.form['address']
+    type = 'student' 
+    major = request.form['major']
+    school = request.form['school']
+    if name != '':
+      g.conn.execute("INSERT INTO Person VALUES (%s,%s,%s,%s,%s)", PID,name,email,address,type)
+      g.conn.execute("insert into Student values (%s,%s,%s)",PID,major, school)  
+    else:
+      pass
+  except:
+    print("informal data format")
+  return redirect('/student')
+
+@app.route('/searchpersonbyname',methods=['GET'])
+def search():
+  name=request.args['name']
+  if name !='':
+    cursor=g.conn.execute("select * from Person where name= %s", name)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+    for i in range(0,len(search_result)):  
+      PID=int(search_result[i][0])
+  
+      if search_result[i][-1]=='student':
+        cursor2=g.conn.execute("select * from Student where PID= %s", PID)
+        for row in cursor2:
+          search_result[i]=search_result[i]+[str(x) for x in row][1:]
+      else:
+        cursor2=g.conn.execute("select * from Employee where PID= %s", PID)
+        for row in cursor2:
+          search_result[i]=search_result[i]+[str(x) for x in row][1:]
+  else:
+    cursor=g.conn.execute("select * from Person")
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+  return render_template("result.html",search_result=search_result)
+  
+
+@app.route('/searchstudentbyschool',methods=['GET'])
+def search2():
+  school=request.args['school']
+  if school !='':
+    cursor=g.conn.execute("select P.PID,P.name,P.email,P.address,P.type,S.school,S.major from Person P, Student S where P.PID=S.PID and S.school= %s", school)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  else:
+    cursor=g.conn.execute("select P.PID,P.name,P.email,P.address,P.type,S.school,S.major from Person P, Student S where P.type='student' and P.PID = S.PID")
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+  return render_template("result.html",search_result=search_result)
+  
+
+@app.route('/searchstudentbymajor',methods=['GET'])
+def search3():
+  major=request.args['major']
+  if major !='':
+    cursor=g.conn.execute("select P.PID,P.name,P.email,P.address,P.type,S.school,S.major from Person P, Student S where P.PID=S.PID and S.major= %s", major)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  else:
+    cursor=g.conn.execute("select P.PID,P.name,P.email,P.address,P.type,S.school,S.major from Person P, Student S where P.type='student' and P.PID = S.PID")
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+  return render_template("result.html",search_result=search_result)
+  
+
+@app.route('/searchemployeebyjob',methods=['GET'])
+def search4():
+  job=request.args['job']
+  if job !='':
+    cursor=g.conn.execute("select P.PID,P.name,P.email,P.address,P.type,E.job,E.rank from Person P, Employee E where P.PID=E.PID and E.job= %s", job)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  else:
+    cursor=g.conn.execute("select P.PID,P.name,P.email,P.address,P.type,E.job,E.rank from Person P, Employee E where P.type='employee' and P.PID = E.PID")
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+  return render_template("result.html",search_result=search_result)
+
+
+
+@app.route('/searchcompanybyname',methods=['GET'])
+def search5():
+  name=request.args['name']
+  if name !='':
+    cursor=g.conn.execute("select * from Company where name= %s", name)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  else:
+    cursor=g.conn.execute("select * from Company")
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+  return render_template("result.html",search_result=search_result)
+  
+
+@app.route('/searchpositionbycompany',methods=['GET'])
+def search6():
+  company=request.args['company']
+  if company !='':
+    cursor=g.conn.execute("select C.name, P2.POS_ID, P2.title,P2.payment, P2.address, P2.start_time, P2.duration from Company C, Post P1, Position P2 where C.name= %s and C.CID=P1.CID and P1.POS_ID=P2.POS_ID order by P2.POS_ID", company)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  else:
+    cursor=g.conn.execute("select C.name, P2.POS_ID, P2.title,P2.payment, P2.address, P2.start_time, P2.duration from Company C, Post P1, Position P2 where C.CID=P1.CID and P1.POS_ID=P2.POS_ID order by P2.POS_ID")
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+  return render_template("result.html",search_result=search_result)
+
+
+@app.route('/searchsabytime',methods=['GET'])
+def search7():
+  starttime=request.args['starttime']
+  #starttime=datetime.datetime.strptime(starttime,'%Y/%m/%d')
+  endtime=request.args['endtime']
+  #endtime=datetime.datetime.strptime(endtime,'%Y/%m/%d')
+  if starttime !='' and endtime != '':
+    cursor=g.conn.execute("select * from Social_activity where date(time) >= date(%s) and date(time) <= date(%s)", starttime,endtime)
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  elif starttime !='' and endtime == '':
+    cursor=g.conn.execute("select * from Social_activity where date(time) >= date(%s)", starttime)
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+
+  elif starttime =='' and endtime != '':
+    cursor=g.conn.execute("select * from Social_activity where date(time) <= date(%s)", endtime)
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row]) 
+  
+  else:
+    cursor=g.conn.execute("select * from Social_activity")
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row]) 
+         
+  
+  return render_template("result.html",search_result=search_result)
+  
+  
+
+@app.route('/searchinterviewbycompany',methods=['GET'])
+def search8():
+  company=request.args['company']
+  if company !='':
+    cursor=g.conn.execute("select C.name, I.IID, I.location, I.time from Company C, Host H, Interview I where C.name= %s and C.CID=H.CID and I.IID=H.IID order by I.IID", company)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  else:
+    cursor=g.conn.execute("select C.name, I.IID, I.location, I.time from Company C, Host H, Interview I where C.CID=H.CID and H.IID=I.IID order by I.IID")
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+  return render_template("result.html",search_result=search_result)
+  
+  
+
+@app.route('/searchinterviewbytime',methods=['GET'])
+def search9():
+  starttime=request.args['starttime']
+  #starttime=datetime.datetime.strptime(starttime,'%Y/%m/%d')
+  endtime=request.args['endtime']
+  #endtime=datetime.datetime.strptime(endtime,'%Y/%m/%d')
+  if starttime !='' and endtime != '':
+    cursor=g.conn.execute("select C.name, I.IID, I.location, I.time from Interview I, Company C, Host H where date(I.time) >= date(%s) and date(I.time) <= date(%s) and C.CID=H.CID and H.IID=I.IID order by date(I.time)", starttime,endtime)
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  elif starttime !='' and endtime == '':
+    cursor=g.conn.execute("select C.name, I.IID, I.location, I.time from Interview I, Company C, Host H where date(I.time) >= date(%s) and C.CID=H.CID and H.IID=I.IID order by date(I.time)", starttime)
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+
+  elif starttime =='' and endtime != '':
+    cursor=g.conn.execute("select C.name, I.IID, I.location, I.time from Interview I, Company C, Host H where date(I.time) <= date(%s) and C.CID=H.CID and H.IID=I.IID order by date(I.time)", endtime)
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row]) 
+  
+  else:
+    cursor=g.conn.execute("select C.name, I.IID, I.location, I.time from Interview I, Company C, Host H where C.CID=H.CID and H.IID=I.IID order by date(I.time)")
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row]) 
+         
+  
+  return render_template("result.html",search_result=search_result)
+
+
+@app.route('/searchemployeebycompany',methods=['GET'])
+def search10():
+  company=request.args['company']
+  if company !='':
+    cursor=g.conn.execute("select P.PID,P.name,P.email,P.address,P.type,E.job,E.rank, C.name from Person P, Employee E, Work_in W, Company C where C.name= %s and C.CID=W.CID and W.PID=P.PID and P.PID=E.PID", company)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  else:
+    cursor=g.conn.execute("select P.PID,P.name,P.email,P.address,P.type,E.job,E.rank, C.name from Person P, Employee E, Work_in W, Company C where C.CID=W.CID and W.PID=P.PID and P.PID=E.PID")
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+  return render_template("result.html",search_result=search_result)
+  
+
+
+
+
+@app.route('/studentapplyposition', methods=['POST'])
+def add1():
+  personid=request.form['personid']
+  positionid=request.form['positionid']
+  if personid != '' and positionid != '':
+    g.conn.execute("INSERT INTO Apply VALUES (%s,%s)", positionid, personid)
+  else:
+    pass  
+  return redirect('/student')  
+  
+  
+@app.route('/studentsignforsa', methods=['POST'])
+def add2():
+  personid=request.form['personid']
+  said=request.form['said']
+  if personid != '' and said != '':
+    g.conn.execute("INSERT INTO Attend VALUES (%s,%s)", said, personid)
+  else:
+    pass  
+  return redirect('/student')  
+
+@app.route('/studentparticipateinterview', methods=['POST'])
+def add3():
+  personid=request.form['personid']
+  iid=request.form['iid']
+  if personid != '' and iid != '':
+    g.conn.execute("INSERT INTO Participate VALUES (%s,%s)", iid, personid)
+  else:
+    pass  
+  return redirect('/student') 
+
+#@app.route('/searchsabylocation',methods=['GET'])
+#def search8():
+#  location=request.args['location']
+#  if location !='':
+#    cursor=g.conn.execute("select * from Social_activity where location like  '%s%' ",location )
+#    #select * from Social_activity where location like '%NY%'
+#  
+#    search_result=[]
+#    for row in cursor:
+#      search_result.append([str(x) for x in row])
+#    
+#  else:
+#    cursor=g.conn.execute('select * from Social_activity')
+#  
+#    search_result=[]
+#    for row in cursor:
+#      search_result.append([str(x) for x in row])
+#  return render_template("anotherfile.html",search_result=search_result)
+
+
+
+
+
+
+@app.route('/employee')
+def goemployee():
+  cursor= g.conn.execute("SELECT count(*) FROM Employee")
+  number=0
+  for result in cursor:
+      number=result[0]
+  cursor.close()
+  return render_template("employee.html",number=number)
+  
+  
+@app.route('/employeesignin', methods=['POST'])
+def add4():
+  
+  try:
+    cursor = g.conn.execute("SELECT count(*) FROM Person")
+    number=0
+    for result in cursor:
+      number=result[0]
+    PID = number+1
+    name = request.form['name']
+    email = request.form['email']
+    address = request.form['address']
+    type = 'employee' 
+    job = request.form['job']
+    rank = request.form['rank']
+    if name != '':
+      g.conn.execute("INSERT INTO Person VALUES (%s,%s,%s,%s,%s)", PID,name,email,address,type)
+      g.conn.execute("insert into Employee values (%s,%s,%s)",PID,job, rank)  
+    else:
+      pass
+  except:
+    print("informal data format")
+  return redirect('/employee')
+
+
+@app.route('/employeeholdsa', methods=['POST'])
+def add5():
+  
+  try:
+    cursor = g.conn.execute("SELECT count(*) FROM Social_activity")
+    number=0
+    for result in cursor:
+      number=result[0]
+    SAID = number+1
+    personid = request.form['personid']
+    time = request.form['time']
+    location = request.form['location']
+    description = request.form['description']
+    if time != '' and location != '' and personid != '':
+      g.conn.execute("INSERT INTO Social_activity VALUES (%s,%s,%s,%s)", SAID,time,location,description)
+      g.conn.execute("insert into Hold values (%s,%s)",SAID, personid)  
+    else:
+      pass
+  except:
+    print("informal data format")
+  return redirect('/employee')
+
+
+@app.route('/checkwhoattendsa',methods=['GET'])
+def search11():
+  personid=request.args['personid']
+  if personid !='':
+    cursor=g.conn.execute("select P.PID, P.name, S.school, A.SAID from Hold H, Attend A, Student S, Person P where H.PID = %s and H.SAID=A.SAID and A.PID=S.PID and S.PID=P.PID ", personid)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  else:
+    return redirect('/employee')
+  return render_template("result.html",search_result=search_result)
+
+
+ 
+@app.route('/company')
+def gocompany():
+  cursor= g.conn.execute("SELECT count(*) FROM Company")
+  number=0
+  for result in cursor:
+      number=result[0]
+  cursor.close()
+  return render_template("company.html",number=number)
+
+
+@app.route('/companysignin', methods=['POST'])
+def add6():
+  
+  try:
+    cursor = g.conn.execute("SELECT count(*) FROM Company")
+    number=0
+    for result in cursor:
+      number=result[0]
+    CID = number+1
+    name = request.form['name']
+    size = request.form['size']
+    field = request.form['field']
+    address = request.form['address']
+
+    if name != '':
+      g.conn.execute("INSERT INTO Company VALUES (%s,%s,%s,%s,%s)", CID,name,size,field,address)
+       
+    else:
+      pass
+  except:
+    print("informal data format")
+  return redirect('/company')
+
+ 
+@app.route('/companyhostinterview', methods=['POST'])
+def add7():
+  
+  try:
+    cursor = g.conn.execute("SELECT count(*) FROM Interview")
+    number=0
+    for result in cursor:
+      number=result[0]
+    IID = number+1
+    cid = request.form['cid']
+    time = request.form['time']
+    location = request.form['location']
+
+    if time != '' and location != '' and cid != '':
+      g.conn.execute("INSERT INTO Interview VALUES (%s,%s,%s)", IID,location,time)
+      g.conn.execute("insert into Host values (%s,%s)",IID, cid)  
+    else:
+      pass
+  except:
+    print("informal data format")
+  return redirect('/company')
+ 
+ 
+@app.route('/companypostposition', methods=['POST'])
+def add8():
+  
+  try:
+    cursor = g.conn.execute("SELECT count(*) FROM Position")
+    number=0
+    for result in cursor:
+      number=result[0]
+    posid = number+1
+    cid = request.form['cid']
+    payment = request.form['payment']
+    address = request.form['address']
+    starttime = request.form['starttime']
+    duration = request.form['duration']
+    title = request.form['title']
+    
+    if starttime != '' and address != '' and cid != '':
+      g.conn.execute("INSERT INTO Position VALUES (%s,%s,%s,%s,%s,%s)", posid,title,payment,address,starttime,duration)
+      g.conn.execute("insert into Post values (%s,%s)",posid, cid)  
+    else:
+      pass
+  except:
+    print("informal data format")
+  return redirect('/company')
+
+
+@app.route('/checkwhoattendinterview',methods=['GET'])
+def search12():
+  cid=request.args['cid']
+  if cid !='':
+    cursor=g.conn.execute("select P.PID, P.name, S.school, PA.IID from Host H, Participate PA, Student S, Person P where H.CID = %s and H.IID=PA.IID and PA.PID=S.PID and S.PID=P.PID ", cid)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  else:
+    return redirect('/company')
+  return render_template("result.html",search_result=search_result)
+
+
+@app.route('/checkwhoappliedposition',methods=['GET'])
+def search13():
+  cid=request.args['cid']
+  if cid !='':
+    cursor=g.conn.execute("select P.PID, P.name, S.school, A.POS_ID from Post PO, Apply A, Student S, Person P where PO.CID = %s and A.POS_ID=PO.POS_ID and A.PID=S.PID and S.PID=P.PID ", cid)
+  
+    search_result=[]
+    for row in cursor:
+      search_result.append([str(x) for x in row])
+    
+  else:
+    return redirect('/company')
+  return render_template("result.html",search_result=search_result)
 
 
 @app.route('/login')
@@ -210,17 +576,7 @@ if __name__ == "__main__":
   @click.argument('HOST', default='0.0.0.0')
   @click.argument('PORT', default=8111, type=int)
   def run(debug, threaded, host, port):
-    """
-    This function handles command line parameters.
-    Run the server using
 
-        python server.py
-
-    Show the help text using
-
-        python server.py --help
-
-    """
 
     HOST, PORT = host, port
     print "running on %s:%d" % (HOST, PORT)
@@ -228,3 +584,5 @@ if __name__ == "__main__":
 
 
   run()
+  
+  

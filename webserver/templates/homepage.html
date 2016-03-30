@@ -1,48 +1,39 @@
 <html>
   <style>
-    body{ 
-      font-size: 15pt;
+    body
+    { 
+      font-size: 10pt;
       font-family: arial;
     }
   </style>
-
-
 <body>
-  <h1>Our Resources</h1>
-
-<h1> Student Users </h1>
+  <h1><center style="font-size: 30px">Welcome to Intern Bridge!</center></h1>
+<center> <a href="/student" style="font-size: 16px">Explore as Student</a> </center>
+<h3><center>Current Student User Information:</center></h3>
+<b><center>[PID, Name, Email, Address, Type, University, Major]</center></b>
   <div>
     {% for n in student %}
-    <div>{{n}}</div>
+    <div><center>{{n}}</center></div>
     {% endfor %}
   </div>
-
 <br>
-<br>
-
-<h1> Employee Users </h1>
+<center><a href="/employee" style="font-size: 16px">Explore as Employee</a> </center>
+<h3><center>Current Employee User Information:</center></h3>
+<b><center>[PID, Name, Email, Address, Type, Job, Rank]</center></b>
   <div>
     {% for n in employee %}
-    <div>{{n}}</div>
+    <div><center>{{n}}</center></div>
     {% endfor %}
   </div>
-
 <br>
-<br>
-
-<h1> Companies Users</h1>
+<center><a href="/company" style="font-size: 16px">Explore as Company</a> </center>
+<h3><center>Current Company User Information:</center></h3>
+<b><center>[CID, Name, Size, Field, Address]</center></b>
   <div>
     {% for n in company %}
-    <div>{{n}}</div>
+    <div><center>{{n}}</center></div>
     {% endfor %}
   </div>
 <br>
-<p><a href="/student">Explore as Student</a></p>
-<p><a href="/employee">Explore as Employee</a></p>
-<p><a href="/company">Explore as Company</a></p>
-
-
 </body>
-
-
 </html>

@@ -1,127 +1,163 @@
 <html>
   <style>
     body{ 
-      font-size: 15pt;
+      font-size: 10pt;
       font-family: arial;
     }
   </style>
-
-
 <body>
-  <h1>Internship Bridge</h1>
-  <div> We have {{number}} Student Users in total now, sign up to be the {{number+1}} </div>
+  <center>
+  <h1 style="font-size: 28px"> Welcome to Intern Bridge! </h1>
+  <h2>Student Page </h2>
+
+  <div> We have {{number}} Student Users right now.<br>Sign up to be the {{number+1}}th! </div>
 
 
 <p><a href="/">Back to Homepace</a></p>
+<h3>Sign Up </h3>
 
 <form method="POST" action="/studentsignin">
-
-<p>Sign Up:<br>
-   Name: <input type="text" name="name"> 
-   Email: <input type="text" name="email">
+<p>Fill out your information to sign up:<br>
+   (Name and Email are necessary)<br>
+   Name*: <input type="text" name="name"> 
+   Email*: <input type="text" name="email">
+   <br>
    Address: <input type="text" name="address"> 
    Major: <input type="text" name="major">
    School: <input type="text" name="school">
-    
+   <br>
 <input type="submit" value="Add"></p>
 </form>
 
 
+<form method="POST" action="/studentsignforsa">
+<p>Sign up for social activity:<br>
+  (Both IDs are necessary)<br>
+Personal ID*:<input type="number" name="personid">
+<br> 
+Social Activity ID*:<input type="number" name="said"> 
+<br> 
+<input type="submit" value="Sign"></p>
+</form>
+
+
+
+<form method="POST" action="/studentparticipateinterview">
+<p>Sign up for interview:<br>
+  (Both IDs are necessary)<br>
+Personal ID*:<input type="number" name="personid">
+<br>
+Interview ID*:<input type="number" name="iid">  
+<br>
+<input type="submit" value="Sign"></p>
+</form>
+
+<h3>Apply</h3>
+<form method="POST" action="/studentapplyposition">
+<p>Apply for intern positon:<br>
+  (Both IDs are necessary)<br>
+Personal ID*:<input type="number" name="personid">
+<br> 
+Position ID*:<input type="number" name="positionid">
+<br>  
+<input type="submit" value="Apply"></p>
+</form>
+
+<h3>Search</h3>
+<b><i>Empty submission can show all existing records:</i></b>
 <form method="GET" action="/searchpersonbyname">
-<p>Search person by name:<br>
-<input type="text" name="name">  
+<p>Search person by name:
+<br>
+<input type="text" name="name">
+<br>  
 <input type="submit" value="Search"></p>
 </form>
 
 <form method="GET" action="/searchstudentbyschool">
-<p>Search student by school: <br>
-<input type="text" name="school">  
+<p>Search student by school name: 
+<br>
+<input type="text" name="school"> 
+<br> 
 <input type="submit" value="Search"></p>
 </form>
 
 
 <form method="GET" action="/searchstudentbymajor">
-<p>Search student by major: <br>
-<input type="text" name="major">  
+<p>Search student by major: 
+<br>
+<input type="text" name="major">
+<br>  
 <input type="submit" value="Search"></p>
 </form>
 
 <form method="GET" action="/searchemployeebyjob">
-<p>Search employee by job: <br>
-<input type="text" name="job">  
+<p>Search employee by job: 
+<br>
+<input type="text" name="job">
+<br>  
 <input type="submit" value="Search"></p>
 </form>
 
 <form method="GET" action="/searchemployeebycompany">
-<p>Search employee by company: <br>
-<input type="text" name="company">  
+<p>Search employee by company name: 
+<br>
+<input type="text" name="company">
+<br>  
 <input type="submit" value="Search"></p>
 </form>
 
 
 <form method="GET" action="/searchcompanybyname">
-<p>Search company by name: <br>
-<input type="text" name="name">  
+<p>Search company by name: 
+<br>
+<input type="text" name="name">
+<br>
 <input type="submit" value="Search"></p>
 </form>
 
 
 <form method="GET" action="/searchpositionbycompany">
-<p>Search position by company: <br>
-<input type="text" name="company">  
+<p>Search position by company name: 
+<br>
+<input type="text" name="company">
+<br>  
 <input type="submit" value="Search"></p>
 </form>
 
-
-<form method="POST" action="/studentapplyposition">
-<p>Apply Positon:<br>
-Personal ID:<input type="number" name="personid"> 
-Position ID:<input type="number" name="positionid">  
-<input type="submit" value="Apply"></p>
+<form method="GET" action="/searchinterviewbycompany">
+<p>Search interview by company name: 
+<br>
+<input type="text" name="company">
+<br>  
+<input type="submit" value="Search"></p>
 </form>
 
+<form method="GET" action="/searchinterviewbytime">
+<p>Search interview by time: <br>
+start time (YYYYMMDD):
+<input type="text" name="starttime"> 
+<br>
+end time (YYYYMMDD):
+<input type="text" name="endtime">
+<br>
+<input type="submit" value="Search"></p>
+</form>
 
 <form method="GET" action="/searchsabytime">
 <p>Search social activity by time: <br>
 start time (YYYYMMDD):
 <input type="text" name="starttime"> 
+<br>
 end time (YYYYMMDD):
 <input type="text" name="endtime">
+<br>
 <input type="submit" value="Search"></p>
 </form>
 
 
-<form method="POST" action="/studentsignforsa">
-<p>Sign for Social Activity:<br>
-Personal ID:<input type="number" name="personid"> 
-Social Activity ID:<input type="number" name="said">  
-<input type="submit" value="Sign"></p>
-</form>
 
 
-<form method="GET" action="/searchinterviewbycompany">
-<p>Search Interview by Company Name: <br>
-<input type="text" name="company">  
-<input type="submit" value="Search"></p>
-</form>
-
-<form method="GET" action="/searchinterviewbytime">
-<p>Search Interview by time: <br>
-start time (YYYYMMDD):
-<input type="text" name="starttime"> 
-end time (YYYYMMDD):
-<input type="text" name="endtime">
-<input type="submit" value="Search"></p>
-</form>
-
-
-<form method="POST" action="/studentparticipateinterview">
-<p>Sign for Interview:<br>
-Personal ID:<input type="number" name="personid"> 
-Interview ID:<input type="number" name="iid">  
-<input type="submit" value="Sign"></p>
-</form>
-
+</center>
 </body>
 
 

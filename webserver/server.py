@@ -502,7 +502,7 @@ def add5():
 
     cursor1=g.conn.execute("SELECT E.PID from Employee E")
     cursor1=cursor1.fetchall()
-    cursor2=g.conn.execute("SELECT SA.PID, SA.time, SA.location from Social_activity SA where SA.PID = %s and SA.time = %s and SA.location = %s", personid, time, location)
+    cursor2=g.conn.execute("SELECT H.PID, SA.time, SA.location from Social_activity SA, Hold H  where H.SAID = SA.SAID and H.PID = %s and SA.time = %s and SA.location = %s", personid, time, location)
     cursor2=cursor2.fetchall()
     if (int(personid),) not in cursor1:
       return render_template("result_error.html")
@@ -517,6 +517,7 @@ def add5():
     return render_template("result_error.html")
   return render_template("result_add.html")
 
+ 
 
 @app.route('/checkwhoattendsa',methods=['GET'])
 def search11():

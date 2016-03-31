@@ -1,0 +1,29 @@
+<html>
+  <style>
+    body{ 
+      font-size: 10pt;
+      font-family: arial;
+    }
+  </style>
+
+<body>
+<center>
+<h1 style="font-size: 23px">Search Results:</h1>
+
+
+<p><a href="/">Back to Homepage</a></p>
+<p><a href="/student">Back to Student Page</a></p>
+<p><a href="/employee">Back to Employee Page</a></p>
+<p><a href="/company">Back to Company Page</a></p>
+
+<p><b>[PID,name,email,address,type,job,rank]</b></p>
+  <div>
+    {% for n in search_result %}
+    <div>{{n}}</div>
+    {% endfor %}
+  </div>
+
+
+</center>
+</body>
+</html>
